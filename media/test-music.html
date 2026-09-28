@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка музыки</title>
+<style>
+  body{background:#0a0000;color:#fff;font-family:Arial,sans-serif;max-width:640px;margin:40px auto;padding:0 20px;line-height:1.5}
+  h1{font-size:22px;margin-bottom:6px}
+  .box{background:#1a0000;border:1px solid #3a0000;border-radius:10px;padding:16px 18px;margin:14px 0}
+  .k{color:#999;font-size:13px}
+  .ok{color:#6fdc8c;font-weight:700}
+  .bad{color:#ff6b6b;font-weight:700}
+  .warn{color:#ffcc66;font-weight:700}
+  button{background:#D32F2F;color:#fff;border:0;border-radius:8px;padding:12px 20px;font-size:16px;cursor:pointer}
+  code{background:#000;padding:2px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+<h1>Проверка музыки сайта</h1>
+<div class="k">Положите этот файл в ту же папку, где лежит <code>index.html</code>, и откройте его в браузере.</div>
+
+<div class="box">
+  <div class="k">Эта страница открыта из:</div>
+  <div id="where"></div>
+</div>
+
+<div class="box">
+  <div class="k">Ищу файл: <code>media/song.mp3</code></div>
+  <div id="result">Проверяю…</div>
+</div>
+
+<div class="box">
+  <div class="k">Проверка звука (громкость на максимум, не 3% как на сайте):</div>
+  <p><button id="play" disabled>▶ Включить</button></p>
+  <div id="playres" class="k"></div>
+</div>
+
+<script>
+  document.getElementById('where').textContent = location.href;
+
+  var res = document.getElementById('result');
+  var btn = document.getElementById('play');
+  var playres = document.getElementById('playres');
+  var a = new Audio('media/song.mp3');
+  a.preload = 'metadata';
+
+  function fmt(s){ var m = Math.floor(s/60), r = Math.round(s%60); return m + ':' + (r<10?'0':'') + r; }
+
+  a.addEventListener('loadedmetadata', function(){
+    var d = a.duration, who = '';
+    if (d > 250 && d < 275)  who = ' — это <b>Billie Eilish — Wildflower</b> (то, что нужно на входе)';
+    else if (d > 98 && d < 112)  who = ' — <span class="warn">это Navai (≈1:45)</span>, а на входе должна играть Wildflower (≈4:22). Замените файл.';
+    else if (d > 138 && d < 150) who = ' — <span class="warn">это песня Влада (Lil Kidd)</span>, а не Wildflower! Замените файл.';
+    else who = ' — длительность не совпадает с Wildflower (≈4:22)';
+    res.innerHTML = '<span class="ok">✔ Файл найден и читается.</span> Длительность ' + fmt(d) + who;
+    btn.disabled = false;
+  });
+
+  a.addEventListener('error', function(){
+    var c = a.error ? a.error.code : '?';
+    res.innerHTML = '<span class="bad">✘ Файл НЕ загрузился</span> (код ' + c + ').<br>' +
+      'Значит, рядом с этой страницей нет папки <code>media</code> с файлом <code>song.mp3</code> ' +
+      'или он повреждён. Проверьте: путь именно <code>media/song.mp3</code>, буквы в имени в нижнем регистре, ' +
+      'расширение <code>.mp3</code>. Если сайт на GitHub — файл должен быть загружен в репозиторий.';
+    btn.disabled = true;
+  });
+
+  btn.addEventListener('click', function(){
+    if (a.paused) {
+      a.volume = 1;
+      a.play().then(function(){
+        btn.textContent = '⏸ Остановить';
+        playres.innerHTML = 'Играет. Если звука нет — проверьте громкость компьютера и вкладки браузера.';
+      }).catch(function(e){
+        playres.innerHTML = '<span class="bad">Не удалось включить:</span> ' + (e && e.name ? e.name : e);
+      });
+    } else {
+      a.pause(); btn.textContent = '▶ Включить'; playres.textContent = '';
+    }
+  });
+</script>
+</body>
+</html>
